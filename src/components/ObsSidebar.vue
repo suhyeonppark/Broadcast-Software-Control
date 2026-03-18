@@ -7,14 +7,14 @@
       <div class="section-label">방송 상태</div>
       <div class="status-display">
         <h2 :class="streamRunning ? 'on-air-text' : 'standby-text'">
-          {{ streamRunning ? 'ON AIR' : 'OFF AIR' }}
+          {{ streamRunning ? 'ON AIR' : 'OFF AIR' }}<span v-if="streamRunning" class="blink-dot"></span>
         </h2>
         <div class="timer-text">{{ formatTime(streamSeconds) }}</div>
       </div>
       <div class="subsection">
         <div class="section-label">방송 제어</div>
         <div class="obs-actions">
-          <button class="btn-obs start" @click="$emit('start-stream')">방송 시작</button>
+          <button class="btn-obs start" :class="{ 'btn-active': streamRunning }" @click="$emit('start-stream')">방송 시작</button>
           <button class="btn-obs stop" @click="$emit('stop-stream')">방송 종료</button>
         </div>
       </div>
@@ -25,14 +25,14 @@
       <div class="section-label">녹화 상태</div>
       <div class="status-display">
         <h2 :class="recordRunning ? 'rec-live-text' : 'rec-stop-text'">
-          {{ recordRunning ? 'REC' : 'STOP' }}
+          {{ recordRunning ? 'REC' : 'STOP' }}<span v-if="recordRunning" class="blink-dot"></span>
         </h2>
         <div class="timer-text">{{ formatTime(recordSeconds) }}</div>
       </div>
       <div class="subsection">
         <div class="section-label">녹화 제어</div>
         <div class="obs-actions">
-          <button class="btn-obs start" @click="$emit('start-record')">녹화 시작</button>
+          <button class="btn-obs start" :class="{ 'btn-active': recordRunning }" @click="$emit('start-record')">녹화 시작</button>
           <button class="btn-obs stop" @click="$emit('stop-record')">녹화 종료</button>
         </div>
       </div>
@@ -52,6 +52,11 @@
       </div>
       <div v-else class="empty-hint">장면/비디오 소스 목록을 확인해주세요</div>
     </div>
+
+    <!-- OBS 화면전환 -->
+    <button class="btn-obs-transition" @click="$emit('obs-transition')">
+      OBS 화면전환
+    </button>
 
     <!-- 오디오 소스 -->
     <div class="obs-panel">
@@ -100,7 +105,7 @@ defineProps({
 defineEmits([
   'start-stream', 'stop-stream',
   'start-record', 'stop-record',
-  'toggle-media', 'toggle-audio',
+  'toggle-media', 'toggle-audio', 'obs-transition',
 ]);
 
 function formatTime(s) {
@@ -113,7 +118,7 @@ function formatTime(s) {
 
 <style scoped>
 .output-sidebar {
-  width: 390px;
+  width: 450px;
   background: var(--panel-bg);
   border-left: 2px solid #111;
   padding: 20px;
@@ -141,7 +146,7 @@ function formatTime(s) {
 
 .on-air-text { color: var(--active-red); }
 .standby-text { color: #666; }
-.rec-live-text { color: #ff6600; }
+.rec-live-text { color: var(--active-red); }
 .rec-stop-text { color: #777; }
 
 .timer-text {
@@ -164,21 +169,38 @@ function formatTime(s) {
 }
 
 .btn-obs {
-  min-height: 60px;
-  padding: 14px 16px;
+  min-height: 72px;
+  padding: 16px 18px;
   background: #3f3f3f;
   border: none;
   color: white;
   border-radius: 6px;
   cursor: pointer;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 16px;
   transition: background-color 0.12s ease, transform 0.08s ease;
 }
 .btn-obs:hover { filter: brightness(1.2); }
 .btn-obs:active { transform: scale(0.98); }
 .btn-obs.start { background: #2c5a3d; }
 .btn-obs.stop { background: #5a2e2e; }
+.btn-obs.btn-active { background: #22c55e; color: #000; font-weight: 700; box-shadow: 0 0 14px rgba(34, 197, 94, 0.45); }
+
+.blink-dot {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  background: var(--active-red);
+  border-radius: 50%;
+  margin-left: 10px;
+  vertical-align: middle;
+  animation: blink 1s step-start infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
 
 .active-media { background-color: var(--active-cyan) !important; color: white; }
 .active-audio { background-color: var(--active-purple) !important; color: white; }
@@ -196,6 +218,21 @@ function formatTime(s) {
 .setting-row:last-child { margin-bottom: 0; }
 .setting-value-strong { color: white; font-weight: 600; }
 .subsection { margin-top: 18px; }
+
+.btn-obs-transition {
+  width: 100%;
+  min-height: 56px;
+  background: var(--active-cyan);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter 0.12s ease, transform 0.08s ease;
+}
+.btn-obs-transition:hover { filter: brightness(1.2); }
+.btn-obs-transition:active { transform: scale(0.98); }
 
 .empty-hint {
   color: #666;

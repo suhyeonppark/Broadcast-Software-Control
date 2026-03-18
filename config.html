@@ -294,6 +294,35 @@
         color: #000;
       }
 
+      /* 추가/삭제 버튼 */
+      .table-actions {
+        margin-top: 8px;
+      }
+
+      .btn-add {
+        padding: 6px 14px;
+        background: #2a3a2a;
+        border: 1px solid #4a6a4a;
+        border-radius: 5px;
+        color: var(--accent);
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: opacity 0.15s;
+      }
+      .btn-add:hover { opacity: 0.85; }
+
+      .btn-del {
+        background: none;
+        border: none;
+        color: #666;
+        font-size: 16px;
+        cursor: pointer;
+        padding: 2px 8px;
+        transition: color 0.15s;
+      }
+      .btn-del:hover { color: var(--danger); }
+
       /* 스크롤바 */
       ::-webkit-scrollbar { width: 6px; }
       ::-webkit-scrollbar-track { background: transparent; }
@@ -349,10 +378,14 @@
               <th>#</th>
               <th>ATEM 입력 번호</th>
               <th>표시 이름</th>
+              <th></th>
             </tr>
           </thead>
           <tbody id="channels-tbody"></tbody>
         </table>
+        <div class="table-actions">
+          <button class="btn-add" id="btn-add-channel">+ 채널 추가</button>
+        </div>
         <p class="note">* ATEM 입력 번호: 일반 입력 1–20, BLK=0, COL=2001/2002, MP=3010/3020</p>
       </div>
     </div>
@@ -367,10 +400,14 @@
               <th>#</th>
               <th>ATEM 소스 번호</th>
               <th>표시 이름</th>
+              <th></th>
             </tr>
           </thead>
           <tbody id="aux-tbody"></tbody>
         </table>
+        <div class="table-actions">
+          <button class="btn-add" id="btn-add-aux">+ AUX 추가</button>
+        </div>
         <p class="note">* 특수 소스: PGM=10010, PVW=10011, Multiview=10013</p>
       </div>
     </div>
@@ -402,34 +439,56 @@
         });
       });
 
+      // ── 행 번호 갱신 ──
+      function renumberRows(tbodyId) {
+        const rows = document.querySelectorAll(`#${tbodyId} tr`);
+        rows.forEach((tr, i) => { tr.querySelector('td').textContent = i + 1; });
+      }
+
       // ── 채널 테이블 생성 ──
-      function buildChannelsTable(channels) {
+      function addChannelRow(ch = { atemId: 0, label: '' }) {
         const tbody = document.getElementById('channels-tbody');
-        tbody.innerHTML = '';
-        channels.forEach((ch, i) => {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${i + 1}</td>
-            <td><input type="number" class="ch-atem-id" value="${ch.atemId}" min="0" /></td>
-            <td><input type="text" class="ch-label" value="${ch.label}" /></td>
-          `;
-          tbody.appendChild(tr);
+        const i = tbody.children.length;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${i + 1}</td>
+          <td><input type="number" class="ch-atem-id" value="${ch.atemId}" min="0" /></td>
+          <td><input type="text" class="ch-label" value="${ch.label}" /></td>
+          <td><button class="btn-del" title="삭제">✕</button></td>
+        `;
+        tr.querySelector('.btn-del').addEventListener('click', () => {
+          tr.remove();
+          renumberRows('channels-tbody');
         });
+        tbody.appendChild(tr);
+      }
+
+      function buildChannelsTable(channels) {
+        document.getElementById('channels-tbody').innerHTML = '';
+        channels.forEach((ch) => addChannelRow(ch));
       }
 
       // ── AUX 테이블 생성 ──
-      function buildAuxTable(auxSources) {
+      function addAuxRow(src = { atemId: 0, label: '' }) {
         const tbody = document.getElementById('aux-tbody');
-        tbody.innerHTML = '';
-        auxSources.forEach((src, i) => {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${i + 1}</td>
-            <td><input type="number" class="aux-atem-id" value="${src.atemId}" min="0" /></td>
-            <td><input type="text" class="aux-label" value="${src.label}" /></td>
-          `;
-          tbody.appendChild(tr);
+        const i = tbody.children.length;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${i + 1}</td>
+          <td><input type="number" class="aux-atem-id" value="${src.atemId}" min="0" /></td>
+          <td><input type="text" class="aux-label" value="${src.label}" /></td>
+          <td><button class="btn-del" title="삭제">✕</button></td>
+        `;
+        tr.querySelector('.btn-del').addEventListener('click', () => {
+          tr.remove();
+          renumberRows('aux-tbody');
         });
+        tbody.appendChild(tr);
+      }
+
+      function buildAuxTable(auxSources) {
+        document.getElementById('aux-tbody').innerHTML = '';
+        auxSources.forEach((src) => addAuxRow(src));
       }
 
       // ── 설정 로드 ──
@@ -484,6 +543,10 @@
 
         window.configAPI.save(newConfig);
       });
+
+      // ── 채널/AUX 추가 ──
+      document.getElementById('btn-add-channel').addEventListener('click', () => addChannelRow());
+      document.getElementById('btn-add-aux').addEventListener('click', () => addAuxRow());
 
       // ── 취소 ──
       document.getElementById('btn-cancel').addEventListener('click', () => {

@@ -1,55 +1,95 @@
 <template>
-  <div class="workspace">
-    <ProgramBus
-      class="program-pos"
-      label="프로그램"
-      :channels="channels"
-      :activeIndex="activeProgram"
-      activeClass="active-pgm"
-      @select="setProgram"
-    />
-
-    <ProgramBus
-      class="preview-pos"
-      label="프리뷰"
-      :channels="channels"
-      :activeIndex="activePreview"
-      activeClass="active-pvw"
-      @select="setPreview"
-    />
-
-    <div class="right-top-stack">
-      <TransitionPanel
-        :transitions="transitions"
-        :active="activeTransition"
-        @select="setTransition"
-      />
-      <AuxPanel
-        :sources="auxSources"
-        :activeIndex="activeAux"
-        @select="setAux"
-      />
-    </div>
-
-    <ExecutePanel class="execute-pos" @cut="execCut" @auto="execAuto" />
+  <div class="top-header">
+    <span class="header-title">Broadcast Software Control</span>
+    <span class="header-venue">나눔교회</span>
   </div>
 
-  <ObsSidebar
-    :streamRunning="streamRunning"
-    :streamSeconds="streamSeconds"
-    :recordRunning="recordRunning"
-    :recordSeconds="recordSeconds"
-    :mediaSources="mediaSources"
-    :audioSources="audioSources"
-    :currentMedia="currentMedia"
-    :currentAudio="currentAudio"
-    @start-stream="startStream"
-    @stop-stream="stopStream"
-    @start-record="startRecord"
-    @stop-record="stopRecord"
-    @toggle-media="toggleMedia"
-    @toggle-audio="toggleAudio"
-  />
+  <div class="main-body">
+    <div
+      class="workspace-area"
+      ref="workspaceArea"
+    >
+      <div
+        class="workspace-inner"
+        ref="workspaceInner"
+      >
+        <ProgramBus
+          class="program-pos"
+          label="프로그램"
+          :channels="channels"
+          :activeIndex="activeProgram"
+          activeClass="active-pgm"
+          @select="setProgram"
+        />
+
+        <ProgramBus
+          class="preview-pos"
+          label="프리뷰"
+          :channels="channels"
+          :activeIndex="activePreview"
+          activeClass="active-pvw"
+          @select="setPreview"
+        />
+
+        <div class="right-top-stack">
+          <TransitionPanel
+            :transitions="transitions"
+            :active="activeTransition"
+            @select="setTransition"
+          />
+          <AuxPanel
+            :sources="auxSources"
+            :activeIndex="activeAux"
+            @select="setAux"
+          />
+        </div>
+
+        <ExecutePanel
+          class="execute-pos"
+          @cut="execCut"
+          @auto="execAuto"
+        />
+      </div>
+    </div>
+
+    <ObsSidebar
+      :streamRunning="streamRunning"
+      :streamSeconds="streamSeconds"
+      :recordRunning="recordRunning"
+      :recordSeconds="recordSeconds"
+      :mediaSources="mediaSources"
+      :audioSources="audioSources"
+      :currentMedia="currentMedia"
+      :currentAudio="currentAudio"
+      @start-stream="startStream"
+      @stop-stream="stopStream"
+      @start-record="startRecord"
+      @stop-record="stopRecord"
+      @toggle-media="toggleMedia"
+      @toggle-audio="toggleAudio"
+      @obs-transition="execObsTransition"
+    />
+  </div>
+
+  <div class="bottom-footer">
+    <button
+      class="btn-settings"
+      @click="openSettings"
+    >
+      &#9881;
+    </button>
+    <div class="footer-stats">
+      <span class="stat-item">&#9881; CPU {{ cpuUsage }}%</span>
+      <span class="stat-item">&#9670; GPU {{ gpuUsage }}%</span>
+      <span class="stat-item">&#9654; FPS {{ obsFps }}</span>
+      <span class="stat-item">&#8597; {{ obsBitrate }} kbps</span>
+      <span
+        class="stat-item"
+        :class="{ 'stat-warn': diskFree < 30e9 }"
+        >&#9776; {{ formatDisk(diskFree) }} free</span
+      >
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -63,17 +103,43 @@ import ObsSidebar from './components/ObsSidebar.vue';
 const api = window.electronAPI;
 console.log('[Vue] electronAPI:', api ? 'loaded' : 'NOT FOUND');
 
+// ── 자동 스케일 ──
+const BODY_W = 2000;
+const BODY_H = 1000;
+const workspaceArea = ref(null);
+const workspaceInner = ref(null);
+
+function updateScale() {
+  if (!workspaceArea.value || !workspaceInner.value) return;
+  const areaW = workspaceArea.value.clientWidth;
+  const areaH = workspaceArea.value.clientHeight;
+  const s = Math.min(areaW / BODY_W, areaH / BODY_H, 1);
+  workspaceInner.value.style.transform = `translate(-50%, -50%) scale(${s})`;
+}
+
 // ── ATEM 상태 ──
 const channels = ref([
-  { label: 'Cam 1' }, { label: 'Cam 2' }, { label: 'Cam 3' },
-  { label: 'Cam 4' }, { label: 'BLK' },
-  { label: 'COL 1' }, { label: 'MP 1' }, { label: 'SRC 8' },
-  { label: 'SRC 9' }, { label: 'SRC 10' },
+  { label: 'Cam 1' },
+  { label: 'Cam 2' },
+  { label: 'Cam 3' },
+  { label: 'Cam 4' },
+  { label: 'BLK' },
+  { label: 'COL 1' },
+  { label: 'MP 1' },
+  { label: 'SRC 8' },
+  { label: 'SRC 9' },
+  { label: 'SRC 10' },
 ]);
 const auxSources = ref([
-  { label: 'PGM' }, { label: 'PVW' }, { label: 'MVW' },
-  { label: 'Cam 1' }, { label: 'Cam 2' }, { label: 'Cam 3' },
-  { label: 'Cam 4' }, { label: 'BLK' }, { label: 'MP 1' },
+  { label: 'PGM' },
+  { label: 'PVW' },
+  { label: 'MVW' },
+  { label: 'Cam 1' },
+  { label: 'Cam 2' },
+  { label: 'Cam 3' },
+  { label: 'Cam 4' },
+  { label: 'BLK' },
+  { label: 'MP 1' },
 ]);
 const transitions = ['MIX', 'WIPE', 'DIP', 'DVE', 'STING'];
 
@@ -116,19 +182,76 @@ function setAux(i) {
   activeAux.value = i;
   api?.atem.setAux(auxSources.value[i].label);
 }
-function execCut() { api?.atem.cut(); }
-function execAuto() { api?.atem.auto(); }
+function execCut() {
+  api?.atem.cut();
+}
+function execAuto() {
+  api?.atem.auto();
+}
+function execObsTransition() {
+  api?.obs.triggerTransition();
+}
+function openSettings() {
+  api?.config.openWindow();
+}
+
+// ── 시스템 통계 ──
+const cpuUsage = ref(0);
+const gpuUsage = ref(0);
+const diskFree = ref(0);
+const obsFps = ref(0);
+const obsBitrate = ref(0);
+
+function formatDisk(bytes) {
+  if (bytes >= 1e12) return (bytes / 1e12).toFixed(1) + ' TB';
+  if (bytes >= 1e9) return (bytes / 1e9).toFixed(1) + ' GB';
+  if (bytes >= 1e6) return (bytes / 1e6).toFixed(0) + ' MB';
+  return '0 MB';
+}
+
+async function pollStats() {
+  if (!api?.system) return;
+  try {
+    const s = await api.system.getStats();
+    cpuUsage.value = s.cpu;
+    gpuUsage.value = s.gpu;
+    diskFree.value = s.diskFree;
+    obsFps.value = s.obsFps;
+    obsBitrate.value = s.obsBitrate;
+  } catch {}
+}
 
 // ── OBS 액션 ──
-function startStream() { streamRunning.value = true; api?.obs.startStream(); }
-function stopStream() { streamRunning.value = false; streamSeconds.value = 0; api?.obs.stopStream(); }
-function startRecord() { recordRunning.value = true; api?.obs.startRecord(); }
-function stopRecord() { recordRunning.value = false; recordSeconds.value = 0; api?.obs.stopRecord(); }
+function startStream() {
+  streamRunning.value = true;
+  api?.obs.startStream();
+}
+function stopStream() {
+  streamRunning.value = false;
+  streamSeconds.value = 0;
+  api?.obs.stopStream();
+}
+function startRecord() {
+  recordRunning.value = true;
+  api?.obs.startRecord();
+}
+function stopRecord() {
+  recordRunning.value = false;
+  recordSeconds.value = 0;
+  api?.obs.stopRecord();
+}
 
 async function toggleMedia(src) {
-  if (!api) { src.active = !src.active; if (src.active) currentMedia.value = src.name; return; }
+  if (!api) {
+    src.active = !src.active;
+    if (src.active) currentMedia.value = src.name;
+    return;
+  }
   const newState = await api.obs.toggleSource(src.name);
-  if (newState !== null) { src.active = newState; if (newState) currentMedia.value = src.name; }
+  if (newState !== null) {
+    src.active = newState;
+    if (newState) currentMedia.value = src.name;
+  }
 }
 function toggleAudio(src) {
   src.active = !src.active;
@@ -138,14 +261,14 @@ function toggleAudio(src) {
 
 // ── 설정 적용 ──
 function applyConfig(cfg) {
-  (cfg.channels ?? []).forEach((ch, i) => {
-    if (channels.value[i]) channels.value[i].label = ch.label;
-  });
-  (cfg.auxSources ?? []).forEach((src, i) => {
-    if (auxSources.value[i]) auxSources.value[i].label = src.label;
-  });
+  channels.value = (cfg.channels ?? []).map((ch) => ({ label: ch.label }));
+  auxSources.value = (cfg.auxSources ?? []).map((src) => ({
+    label: src.label,
+  }));
   atemIdReverse = {};
-  (cfg.channels ?? []).forEach(ch => { atemIdReverse[ch.atemId] = ch.label; });
+  (cfg.channels ?? []).forEach((ch) => {
+    atemIdReverse[ch.atemId] = ch.label;
+  });
 }
 
 // ── 타이머 ──
@@ -153,6 +276,8 @@ const timer = setInterval(() => {
   if (streamRunning.value) streamSeconds.value++;
   if (recordRunning.value) recordSeconds.value++;
 }, 1000);
+
+const statsTimer = setInterval(pollStats, 2000);
 
 // ── IPC 리스너 ──
 function onKeydown(e) {
@@ -163,7 +288,10 @@ function onKeydown(e) {
 }
 
 onMounted(() => {
+  updateScale();
+  window.addEventListener('resize', updateScale);
   document.addEventListener('keydown', onKeydown);
+  pollStats();
   if (!api) return;
 
   api.config.get().then(applyConfig);
@@ -172,40 +300,54 @@ onMounted(() => {
   api.atem.onStateChanged((state) => {
     if (state.programInput !== undefined) {
       const label = atemIdReverse[state.programInput];
-      const idx = channels.value.findIndex(ch => ch.label === label);
+      const idx = channels.value.findIndex((ch) => ch.label === label);
       if (idx !== -1) activeProgram.value = idx;
     }
     if (state.previewInput !== undefined) {
       const label = atemIdReverse[state.previewInput];
-      const idx = channels.value.findIndex(ch => ch.label === label);
+      const idx = channels.value.findIndex((ch) => ch.label === label);
       if (idx !== -1) activePreview.value = idx;
     }
   });
 
-  api.obs.onStreamStatus((s) => { streamRunning.value = s.active; });
-  api.obs.onRecordStatus((s) => { recordRunning.value = s.active; });
-
-  api.obs.onSourcesLoaded(({ sources, audioSources: audioList, visibilityMap, muteMap }) => {
-    mediaSources.value = sources.map(name => ({ name, active: visibilityMap?.[name] ?? false }));
-    audioSources.value = audioList.map(name => ({ name, active: !(muteMap?.[name] ?? false) }));
-    const am = mediaSources.value.find(s => s.active);
-    if (am) currentMedia.value = am.name;
-    const aa = audioSources.value.find(s => s.active);
-    if (aa) currentAudio.value = aa.name;
+  api.obs.onStreamStatus((s) => {
+    streamRunning.value = s.active;
+  });
+  api.obs.onRecordStatus((s) => {
+    recordRunning.value = s.active;
   });
 
+  api.obs.onSourcesLoaded(
+    ({ sources, audioSources: audioList, visibilityMap, muteMap }) => {
+      mediaSources.value = sources.map((name) => ({
+        name,
+        active: visibilityMap?.[name] ?? false,
+      }));
+      audioSources.value = audioList.map((name) => ({
+        name,
+        active: !(muteMap?.[name] ?? false),
+      }));
+      const am = mediaSources.value.find((s) => s.active);
+      if (am) currentMedia.value = am.name;
+      const aa = audioSources.value.find((s) => s.active);
+      if (aa) currentAudio.value = aa.name;
+    },
+  );
+
   api.obs.onSceneItemStateChanged(({ sourceName, sceneItemEnabled }) => {
-    const src = mediaSources.value.find(s => s.name === sourceName);
+    const src = mediaSources.value.find((s) => s.name === sourceName);
     if (src) src.active = sceneItemEnabled;
   });
   api.obs.onInputMuteChanged(({ inputName, inputMuted }) => {
-    const src = audioSources.value.find(s => s.name === inputName);
+    const src = audioSources.value.find((s) => s.name === inputName);
     if (src) src.active = !inputMuted;
   });
 });
 
 onUnmounted(() => {
   clearInterval(timer);
+  clearInterval(statsTimer);
+  window.removeEventListener('resize', updateScale);
   document.removeEventListener('keydown', onKeydown);
 });
 </script>
@@ -225,7 +367,9 @@ onUnmounted(() => {
   --soft-panel-border: rgba(255, 255, 255, 0.05);
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
 body {
   background-color: var(--bg-dark);
@@ -238,21 +382,61 @@ body {
 }
 
 #app {
-  display: flex;
   width: 100%;
   height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
-.workspace {
+.top-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 34px 24px;
+  background: #111;
+  border-bottom: 1px solid #333;
+  flex-shrink: 0;
+}
+
+.header-title {
+  font-size: 24px;
+  font-weight: 300;
+  letter-spacing: 1.5px;
+  color: #ccc;
+}
+
+.header-venue {
+  font-size: 22px;
+  font-weight: 300;
+  color: var(--text-gray);
+}
+
+.main-body {
   flex: 1;
-  padding: 30px;
+  display: flex;
+  overflow: hidden;
+}
+
+.workspace-area {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.workspace-inner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 2000px;
+  height: 1000px;
   display: grid;
-  grid-template-columns: 990px 600px;
-  grid-template-rows: auto auto;
-  column-gap: 100px;
-  row-gap: 100px;
-  align-content: center;
-  justify-content: center;
+  grid-template-columns: 1090px 600px;
+  grid-template-rows: 1fr 1fr;
+  column-gap: 250px;
+  row-gap: 60px;
+  padding: 30px 40px;
+  transform-origin: center center;
 }
 
 .section-label {
@@ -270,8 +454,80 @@ body {
 }
 
 /* 그리드 배치 */
-.program-pos { grid-column: 1; grid-row: 1; align-self: end; }
-.preview-pos { grid-column: 1; grid-row: 2; align-self: start; }
-.right-top-stack { grid-column: 2; grid-row: 1; display: flex; flex-direction: column; gap: 56px; align-self: end; }
-.execute-pos { grid-column: 2; grid-row: 2; align-self: start; }
+.program-pos {
+  grid-column: 1;
+  grid-row: 1;
+  align-self: end;
+  justify-self: start;
+}
+.preview-pos {
+  grid-column: 1;
+  grid-row: 2;
+  align-self: start;
+  justify-self: start;
+}
+.right-top-stack {
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  align-self: end;
+}
+.execute-pos {
+  grid-column: 2;
+  grid-row: 2;
+  align-self: start;
+}
+
+.bottom-footer {
+  display: flex;
+  align-items: center;
+  padding: 8px 10px;
+  background: #111;
+  border-top: 1px solid #333;
+  flex-shrink: 0;
+}
+
+.btn-settings {
+  background: none;
+  border: none;
+  color: var(--text-gray);
+  font-size: 22px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: color 0.15s;
+}
+.btn-settings:hover {
+  color: #ccc;
+}
+
+.footer-stats {
+  margin-left: auto;
+  display: flex;
+  gap: 24px;
+}
+
+.stat-item {
+  font-size: 13px;
+  color: var(--text-gray);
+  font-family: 'Segoe UI', sans-serif;
+  font-weight: 600;
+}
+
+.stat-warn {
+  color: var(--active-red);
+  animation: blink-stat 1s step-start infinite;
+}
+
+@keyframes blink-stat {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
 </style>

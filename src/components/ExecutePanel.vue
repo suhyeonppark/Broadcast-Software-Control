@@ -44,4 +44,5 @@ defineEmits(['cut', 'auto']);
 }
 .cut-auto-row .btn-hw:hover { filter: brightness(1.2); }
 .cut-auto-row .btn-hw:active { transform: scale(0.98); }
+
 </style>

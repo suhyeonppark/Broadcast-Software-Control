@@ -47,7 +47,7 @@ defineEmits(['select']);
   border-radius: 6px;
   cursor: pointer;
   font-weight: bold;
-  font-size: 14px;
+  font-size: 18px;
   transition: background-color 0.12s ease, transform 0.08s ease;
 }
 .btn-action:hover { filter: brightness(1.2); }

@@ -6,6 +6,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     stopStream:     ()       => ipcRenderer.invoke('obs:stopStream'),
     startRecord:    ()       => ipcRenderer.invoke('obs:startRecord'),
     stopRecord:     ()       => ipcRenderer.invoke('obs:stopRecord'),
+    triggerTransition: ()    => ipcRenderer.invoke('obs:triggerTransition'),
     toggleSource:   (name)          => ipcRenderer.invoke('obs:toggleSource',   name),
     setInputMute:   (name, muted)   => ipcRenderer.invoke('obs:setInputMute',   name, muted),
     onStreamStatus: (cb) => ipcRenderer.on('obs:streamStatus',  (_, d) => cb(d)),
@@ -31,5 +32,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     get:       ()    => ipcRenderer.invoke('config:get'),
     onUpdated: (cb)  => ipcRenderer.on('config:updated', (_, d) => cb(d)),
     openWindow: ()   => ipcRenderer.invoke('config:openWindow'),
+  },
+  system: {
+    getStats: () => ipcRenderer.invoke('system:getStats'),
   },
 });

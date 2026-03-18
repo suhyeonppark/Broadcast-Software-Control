@@ -1,6 +1,8 @@
 const { app, BrowserWindow, ipcMain, Menu } = require('electron');
 const path = require('path');
 const fs   = require('fs');
+const os   = require('os');
+const { execFile } = require('child_process');
 
 const OBSWebSocket = require('obs-websocket-js').default;
 const { Atem }     = require('atem-connection');
@@ -66,7 +68,7 @@ let configWindow = null;
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 2000, height: 1080,
-    minWidth: 2000, minHeight: 1080,
+    minWidth: 1280, minHeight: 720,
     title: 'Advanced Video Switcher Interface',
     backgroundColor: '#1a1a1a',
     webPreferences: {
@@ -285,6 +287,7 @@ ipcMain.handle('obs:startStream',    () => safeCall(() => obs.call('StartStream'
 ipcMain.handle('obs:stopStream',     () => safeCall(() => obs.call('StopStream')));
 ipcMain.handle('obs:startRecord',    () => safeCall(() => obs.call('StartRecord')));
 ipcMain.handle('obs:stopRecord',     () => safeCall(() => obs.call('StopRecord')));
+ipcMain.handle('obs:triggerTransition', () => safeCall(() => obs.call('TriggerStudioModeTransition')));
 
 // 현재 프로그램 씬에서 소스 visibility 토글
 ipcMain.handle('obs:toggleSource', async (_, sourceName) => {
@@ -446,6 +449,82 @@ ipcMain.handle('config:save', (_, newConfig) => {
 
   configWindow?.close();
   console.log('[config] 설정 저장 완료');
+});
+
+// ─────────────────────────────────────────────
+//  시스템 / OBS 통계
+// ─────────────────────────────────────────────
+let prevCpuInfo = null;
+
+function getCpuUsage() {
+  const cpus = os.cpus();
+  let totalIdle = 0, totalTick = 0;
+  for (const cpu of cpus) {
+    for (const type in cpu.times) totalTick += cpu.times[type];
+    totalIdle += cpu.times.idle;
+  }
+  const idle = totalIdle / cpus.length;
+  const total = totalTick / cpus.length;
+
+  if (!prevCpuInfo) {
+    prevCpuInfo = { idle, total };
+    return 0;
+  }
+  const diffIdle = idle - prevCpuInfo.idle;
+  const diffTotal = total - prevCpuInfo.total;
+  prevCpuInfo = { idle, total };
+  return diffTotal > 0 ? Math.round((1 - diffIdle / diffTotal) * 100) : 0;
+}
+
+function getDiskFree() {
+  try {
+    const stat = fs.statfsSync(os.homedir());
+    return stat.bfree * stat.bsize;
+  } catch { return 0; }
+}
+
+let cachedGpu = 0;
+
+function getGpuUsage() {
+  return new Promise((resolve) => {
+    if (process.platform !== 'win32') { resolve(0); return; }
+    execFile('nvidia-smi', ['--query-gpu=utilization.gpu', '--format=csv,noheader,nounits'], (err, stdout) => {
+      if (!err && stdout) {
+        cachedGpu = parseInt(stdout.trim(), 10) || 0;
+      }
+      resolve(cachedGpu);
+    });
+  });
+}
+
+let prevOutputBytes = 0;
+let prevOutputTime = Date.now();
+
+ipcMain.handle('system:getStats', async () => {
+  const cpu = getCpuUsage();
+  const gpu = await getGpuUsage();
+  const diskFree = getDiskFree();
+  let obsBitrate = 0;
+  let obsFps = 0;
+
+  try {
+    const streamStats = await obs.call('GetStreamStatus');
+    const now = Date.now();
+    const elapsed = (now - prevOutputTime) / 1000;
+    if (elapsed > 0 && prevOutputBytes > 0) {
+      const deltaBytes = streamStats.outputBytes - prevOutputBytes;
+      obsBitrate = Math.round((deltaBytes * 8) / elapsed / 1000);
+    }
+    prevOutputBytes = streamStats.outputBytes;
+    prevOutputTime = now;
+  } catch {}
+
+  try {
+    const videoSettings = await obs.call('GetVideoSettings');
+    obsFps = Math.round(videoSettings.fpsNumerator / videoSettings.fpsDenominator);
+  } catch {}
+
+  return { cpu, gpu, diskFree, obsBitrate, obsFps };
 });
 
 // ─────────────────────────────────────────────

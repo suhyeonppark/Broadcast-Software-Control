@@ -81,26 +81,6 @@
     {
       "atemId": 0,
       "label": "BLK"
-    },
-    {
-      "atemId": 3010,
-      "label": "MP 1"
     }
-  ],
-  "obsSceneMap": {
-    "인트로": "인트로",
-    "설교 자막": "설교 자막",
-    "광고 영상": "광고 영상",
-    "찬양 가사": "찬양 가사",
-    "엔딩": "엔딩",
-    "빈 화면": "빈 화면"
-  },
-  "obsAudioMap": {
-    "Main Mix": "Main Mix",
-    "Mic Group": "Mic Group",
-    "Music Bus": "Music Bus",
-    "Video Audio": "Video Audio",
-    "Playback": "Playback",
-    "Mute": null
-  }
+  ]
 }

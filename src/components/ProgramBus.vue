@@ -26,8 +26,8 @@ defineEmits(['select']);
 <style scoped>
 .bus-row {
   display: grid;
-  grid-template-columns: repeat(5, 170px);
-  gap: 20px;
+  grid-template-columns: repeat(5, 190px);
+  gap: 30px;
   background: var(--soft-panel-bg);
   border: 1px solid var(--soft-panel-border);
   border-radius: 12px;
@@ -36,14 +36,14 @@ defineEmits(['select']);
 }
 
 .btn-hw {
-  width: 170px;
-  height: 120px;
+  width: 190px;
+  height: 135px;
   background: var(--btn-gray);
   border: none;
   border-radius: 8px;
   color: white;
-  font-size: 15px;
-  font-weight: 600;
+  font-size: 20px;
+  font-weight: 700;
   cursor: pointer;
   transition: background-color 0.12s ease, transform 0.08s ease;
 }
