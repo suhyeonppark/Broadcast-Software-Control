@@ -69,7 +69,7 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 2000, height: 1080,
     minWidth: 1280, minHeight: 720,
-    title: 'Advanced Video Switcher Interface',
+    title: 'Broadcast Software Control',
     backgroundColor: '#1a1a1a',
     webPreferences: {
       contextIsolation: true,
@@ -380,14 +380,14 @@ ipcMain.handle('atem:cut',  () => safeCall(() => atem.cut(0)));
 ipcMain.handle('atem:auto', () => safeCall(() => atem.autoTransition(0)));
 
 ipcMain.handle('atem:setTransition', (_, type) => {
-  const style = TRANS_MAP[type];
-  if (style !== undefined)
-    return safeCall(() => atem.setTransitionStyle({ mixEffect: 0, style }));
+  const nextStyle = TRANS_MAP[type];
+  if (nextStyle !== undefined)
+    return safeCall(() => atem.setTransitionStyle({ nextStyle }, 0));
 });
 
 ipcMain.handle('atem:setAux', (_, label) => {
   const id = buildAuxMap()[label];
-  if (id !== undefined) return safeCall(() => atem.setAuxSource(0, id));
+  if (id !== undefined) return safeCall(() => atem.setAuxSource(id, 0));
 });
 
 // ─────────────────────────────────────────────
@@ -536,8 +536,20 @@ async function safeCall(fn) {
 }
 
 // ─────────────────────────────────────────────
-//  앱 생명주기
+//  앱 생명주기 (중복 실행 방지)
 // ─────────────────────────────────────────────
+const gotLock = app.requestSingleInstanceLock();
+if (!gotLock) {
+  app.quit();
+} else {
+  app.on('second-instance', () => {
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
+    }
+  });
+}
+
 app.whenReady().then(() => {
   config = loadConfig();
   buildMenu();

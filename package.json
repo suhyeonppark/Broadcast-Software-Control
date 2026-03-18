@@ -12,9 +12,11 @@
     "build:win": "vite build && electron-builder --win",
     "build": "vite build && electron-builder --mac --win"
   },
+  "author": "suhyeonppark",
   "build": {
     "appId": "com.broadcast.switcher",
-    "productName": "Broadcast Switcher",
+    "productName": "Broadcast Software Control",
+    "npmRebuild": false,
     "files": [
       "main.js",
       "preload.js",
@@ -41,12 +43,13 @@
     "win": {
       "target": [
         {
-          "target": "nsis",
+          "target": "portable",
           "arch": [
             "x64"
           ]
         }
-      ]
+      ],
+      "signAndEditExecutable": false
     },
     "nsis": {
       "oneClick": false,
@@ -59,6 +62,9 @@
     },
     "linux": {
       "target": "AppImage"
+    },
+    "directories": {
+      "output": "release"
     }
   },
   "dependencies": {

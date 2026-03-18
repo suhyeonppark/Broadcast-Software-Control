@@ -40,7 +40,7 @@ defineEmits(['select']);
 
 .btn-action {
   width: 100%;
-  height: 62px;
+  height: 80px;
   background: #444;
   border: none;
   color: white;

@@ -31,7 +31,7 @@
           @select="setPreview"
         />
 
-        <div class="right-top-stack">
+        <div class="right-stack">
           <TransitionPanel
             :transitions="transitions"
             :active="activeTransition"
@@ -42,13 +42,11 @@
             :activeIndex="activeAux"
             @select="setAux"
           />
+          <ExecutePanel
+            @cut="execCut"
+            @auto="execAuto"
+          />
         </div>
-
-        <ExecutePanel
-          class="execute-pos"
-          @cut="execCut"
-          @auto="execAuto"
-        />
       </div>
     </div>
 
@@ -141,7 +139,7 @@ const auxSources = ref([
   { label: 'BLK' },
   { label: 'MP 1' },
 ]);
-const transitions = ['MIX', 'WIPE', 'DIP', 'DVE', 'STING'];
+const transitions = ['MIX', 'DIP', 'WIPE', 'DVE'];
 
 const activeProgram = ref(0);
 const activePreview = ref(1);
@@ -432,7 +430,7 @@ body {
   height: 1000px;
   display: grid;
   grid-template-columns: 1090px 600px;
-  grid-template-rows: 1fr 1fr;
+  grid-template-rows: auto 1fr;
   column-gap: 250px;
   row-gap: 60px;
   padding: 30px 40px;
@@ -457,7 +455,7 @@ body {
 .program-pos {
   grid-column: 1;
   grid-row: 1;
-  align-self: end;
+  align-self: start;
   justify-self: start;
 }
 .preview-pos {
@@ -466,18 +464,13 @@ body {
   align-self: start;
   justify-self: start;
 }
-.right-top-stack {
+.right-stack {
   grid-column: 2;
-  grid-row: 1;
+  grid-row: 1 / 3;
   display: flex;
   flex-direction: column;
   gap: 40px;
-  align-self: end;
-}
-.execute-pos {
-  grid-column: 2;
-  grid-row: 2;
-  align-self: start;
+  justify-content: end;
 }
 
 .bottom-footer {

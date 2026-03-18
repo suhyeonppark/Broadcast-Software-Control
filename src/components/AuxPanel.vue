@@ -54,7 +54,7 @@ defineEmits(['select']);
 .btn-aux:active { transform: scale(0.98); }
 
 .active-aux {
-  background-color: var(--active-cyan) !important;
-  color: white;
+  background-color: #e8a023 !important;
+  color: black;
 }
 </style>
