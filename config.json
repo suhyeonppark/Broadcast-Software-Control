@@ -1,0 +1,106 @@
+{
+  "obs": {
+    "host": "127.0.0.1",
+    "port": 4455,
+    "password": ""
+  },
+  "atem": {
+    "ip": "192.168.10.147"
+  },
+  "channels": [
+    {
+      "atemId": 1,
+      "label": "Cam 1"
+    },
+    {
+      "atemId": 2,
+      "label": "Cam 2"
+    },
+    {
+      "atemId": 3,
+      "label": "Cam 3"
+    },
+    {
+      "atemId": 4,
+      "label": "Cam 4"
+    },
+    {
+      "atemId": 0,
+      "label": "BLK"
+    },
+    {
+      "atemId": 2001,
+      "label": "COL 1"
+    },
+    {
+      "atemId": 3010,
+      "label": "MP 1"
+    },
+    {
+      "atemId": 8,
+      "label": "SRC 8"
+    },
+    {
+      "atemId": 9,
+      "label": "SRC 9"
+    },
+    {
+      "atemId": 10,
+      "label": "SRC 10"
+    }
+  ],
+  "auxSources": [
+    {
+      "atemId": 10010,
+      "label": "PGM"
+    },
+    {
+      "atemId": 10011,
+      "label": "PVW"
+    },
+    {
+      "atemId": 10013,
+      "label": "MVW"
+    },
+    {
+      "atemId": 1,
+      "label": "Cam 1"
+    },
+    {
+      "atemId": 2,
+      "label": "Cam 2"
+    },
+    {
+      "atemId": 3,
+      "label": "Cam 3"
+    },
+    {
+      "atemId": 4,
+      "label": "Cam 4"
+    },
+    {
+      "atemId": 0,
+      "label": "BLK"
+    },
+    {
+      "atemId": 3010,
+      "label": "MP 1"
+    }
+  ],
+  "obsSceneMap": {
+    "인트로": "인트로",
+    "설교 자막": "설교 자막",
+    "광고 영상": "광고 영상",
+    "찬양 가사": "찬양 가사",
+    "엔딩": "엔딩",
+    "빈 화면": "빈 화면"
+  },
+  "obsAudioMap": {
+    "Main Mix": "Main Mix",
+    "Mic Group": "Mic Group",
+    "Music Bus": "Music Bus",
+    "Video Audio": "Video Audio",
+    "Playback": "Playback",
+    "Mute": null
+  }
+}

@@ -1,0 +1,92 @@
+# -----------------------------------
+# dependencies
+# -----------------------------------
+node_modules/
+
+# -----------------------------------
+# build output
+# -----------------------------------
+build/
+out/
+release/
+
+# electron-builder / electron-forge outputs
+*.exe
+*.msi
+*.dmg
+*.pkg
+*.deb
+*.rpm
+*.AppImage
+*.snap
+*.zip
+*.7z
+*.tar.gz
+
+# -----------------------------------
+# logs
+# -----------------------------------
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+logs/
+*.log
+
+# -----------------------------------
+# environment files
+# -----------------------------------
+.env
+.env.*
+!.env.example
+
+# -----------------------------------
+# cache / temporary files
+# -----------------------------------
+.cache/
+.tmp/
+temp/
+tmp/
+
+# bundler / tooling cache
+.vite/
+.parcel-cache/
+.eslintcache
+*.tsbuildinfo
+
+# -----------------------------------
+# test / coverage
+# -----------------------------------
+coverage/
+.nyc_output/
+
+# -----------------------------------
+# OS generated files
+# -----------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# -----------------------------------
+# editor / IDE
+# -----------------------------------
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+
+# -----------------------------------
+# python (혹시 보조 스크립트 함께 쓸 때)
+# -----------------------------------
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# -----------------------------------
+# local config / runtime data
+# -----------------------------------
+config.local.json
+userdata/
+sessions/
