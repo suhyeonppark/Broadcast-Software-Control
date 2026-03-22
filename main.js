@@ -91,6 +91,8 @@ function createWindow() {
     }
   });
 
+  mainWindow.on('maximize',   () => mainWindow?.webContents.send('window:maximize'));
+  mainWindow.on('unmaximize', () => mainWindow?.webContents.send('window:unmaximize'));
   mainWindow.on('closed', () => { mainWindow = null; });
 }
 

@@ -1,5 +1,5 @@
 <template>
-  <div class="top-header">
+  <div v-if="!isMaximized" class="top-header">
     <span class="header-title">Broadcast Software Control</span>
     <span class="header-venue">나눔교회</span>
   </div>
@@ -140,6 +140,8 @@ const auxSources = ref([
   { label: 'MP 1' },
 ]);
 const transitions = ['MIX', 'DIP', 'WIPE', 'DVE'];
+
+const isMaximized = ref(false);
 
 const activeProgram = ref(0);
 const activePreview = ref(1);
@@ -291,6 +293,9 @@ onMounted(() => {
   document.addEventListener('keydown', onKeydown);
   pollStats();
   if (!api) return;
+
+  api.window?.onMaximize(()   => { isMaximized.value = true; });
+  api.window?.onUnmaximize(() => { isMaximized.value = false; });
 
   api.config.get().then(applyConfig);
   api.config.onUpdated(applyConfig);

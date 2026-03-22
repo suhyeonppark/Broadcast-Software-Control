@@ -36,4 +36,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   system: {
     getStats: () => ipcRenderer.invoke('system:getStats'),
   },
+  window: {
+    onMaximize:   (cb) => ipcRenderer.on('window:maximize',   () => cb()),
+    onUnmaximize: (cb) => ipcRenderer.on('window:unmaximize', () => cb()),
+  },
 });
