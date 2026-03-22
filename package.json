@@ -1,0 +1,82 @@
+{
+  "name": "broadcast-electron",
+  "version": "1.0.0",
+  "description": "Advanced Video Switcher Interface",
+  "main": "main.js",
+  "scripts": {
+    "dev": "vite",
+    "vue:build": "vite build",
+    "start": "vite build && electron .",
+    "start:debug": "vite build && nodemon --watch src --watch main.js --watch preload.js --ext vue,js,css --exec \"vite build && electron . --devtools\"",
+    "build:mac": "vite build && electron-builder --mac",
+    "build:win": "vite build && electron-builder --win",
+    "build": "vite build && electron-builder --mac --win"
+  },
+  "author": "suhyeonppark",
+  "build": {
+    "appId": "com.broadcast.switcher",
+    "productName": "Broadcast Software Control",
+    "npmRebuild": false,
+    "files": [
+      "main.js",
+      "preload.js",
+      "config-preload.js",
+      "dist/**/*",
+      "config.html"
+    ],
+    "extraResources": [
+      {
+        "from": "config.json",
+        "to": "config.json"
+      }
+    ],
+    "mac": {
+      "target": {
+        "target": "dmg",
+        "arch": [
+          "arm64",
+          "x64"
+        ]
+      },
+      "category": "public.app-category.utilities"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerLanguages": [
+        "ko_KR",
+        "en_US"
+      ],
+      "language": "1042"
+    },
+    "linux": {
+      "target": "AppImage"
+    },
+    "directories": {
+      "output": "release"
+    }
+  },
+  "dependencies": {
+    "atem-connection": "^3.3.0",
+    "obs-websocket-js": "^5.0.5",
+    "vue": "^3.5.30"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.5",
+    "electron": "^29.0.0",
+    "electron-builder": "^24.0.0",
+    "nodemon": "^3.1.14",
+    "vite": "^8.0.0"
+  }
+}

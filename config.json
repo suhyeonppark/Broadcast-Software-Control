@@ -1,0 +1,38 @@
+{
+  "obs": {
+    "host": "127.0.0.1",
+    "port": 4455,
+    "password": ""
+  },
+  "atem": {
+    "ip": "192.168.10.147"
+  },
+  "channels": [
+    {
+      "atemId": 1,
+      "label": "Cam 1"
+    },
+    {
+      "atemId": 2,
+      "label": "Cam 2"
+    },
+    {
+      "atemId": 3,
+      "label": "Cam 3"
+    },
+    {
+      "atemId": 4,
+      "label": "Cam 4"
+    }
+  ],
+  "auxSources": [
+    {
+      "atemId": 10010,
+      "label": "PGM"
+    },
+    {
+      "atemId": 1,
+      "label": "Cam 1"
+    }
+  ]
+}
